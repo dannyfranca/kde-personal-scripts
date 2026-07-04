@@ -6,11 +6,11 @@
         "Name": "Danny Franca"
       }
     ],
-    "Description": "Meta+Up quick-tiles upward, maximizes common top tiles, and restores maximizes created by this script.",
+    "Description": "Meta+Up/Down quick-tiles vertically, maximizes common top tiles, minimizes common bottom tiles, and restores states created by this script.",
     "Icon": "preferences-system-windows",
     "Id": "smart-meta-up",
     "License": "GPL-3.0-or-later",
-    "Name": "Smart Meta Up",
+    "Name": "Smart Meta Up/Down",
     "Version": "0.1.0",
     "Website": "https://github.com/dannyfranca/kde-personal-scripts"
   },
