@@ -22,6 +22,7 @@ const TOLERANCE = 12;
 
 let restoreEntries = [];
 let watchedWindows = [];
+let lastDelegatedTopTile = null;
 
 function numberValue(obj, propertyName) {
     if (!obj) {
@@ -60,6 +61,11 @@ function approxEqual(a, b) {
     return Math.abs(a - b) <= TOLERANCE;
 }
 
+function approxTileHeightEqual(a, b, area) {
+    const tileHeightTolerance = Math.max(TOLERANCE, Math.round(area.height * 0.04));
+    return Math.abs(a - b) <= tileHeightTolerance;
+}
+
 function right(rect) {
     return rect.x + rect.width;
 }
@@ -69,6 +75,17 @@ function isSameAsMaximizeArea(rect, area) {
         approxEqual(rect.y, area.y) &&
         approxEqual(rect.width, area.width) &&
         approxEqual(rect.height, area.height);
+}
+
+function isSameGeometry(first, second) {
+    if (!first || !second) {
+        return false;
+    }
+
+    return approxEqual(first.x, second.x) &&
+        approxEqual(first.y, second.y) &&
+        approxEqual(first.width, second.width) &&
+        approxEqual(first.height, second.height);
 }
 
 function cloneRect(rect) {
@@ -154,7 +171,7 @@ function isTopTileByKWinTileMetadata(window, area) {
 
 function isCommonTopQuickTileGeometry(rect, area) {
     const topEdgeMatches = approxEqual(rect.y, area.y);
-    const halfHeight = approxEqual(rect.height, area.height / 2);
+    const halfHeight = approxTileHeightEqual(rect.height, area.height / 2, area);
 
     const fullWidthTopHalf =
         approxEqual(rect.x, area.x) &&
@@ -245,6 +262,29 @@ function clearRestoreFor(window) {
     }
 }
 
+function clearDelegatedTopTileFor(window) {
+    if (!window || (lastDelegatedTopTile && lastDelegatedTopTile.window === window)) {
+        lastDelegatedTopTile = null;
+    }
+}
+
+function rememberDelegatedTopTile(window) {
+    const geometry = windowGeometry(window);
+
+    lastDelegatedTopTile = {
+        window: window,
+        geometry: geometry ? cloneRect(geometry) : null
+    };
+}
+
+function isRememberedDelegatedTopTile(window, geometry) {
+    const remembered = lastDelegatedTopTile &&
+        lastDelegatedTopTile.window === window &&
+        isSameGeometry(lastDelegatedTopTile.geometry, geometry);
+
+    return Boolean(remembered);
+}
+
 function isWindowFullyMaximizedNow(window) {
     const area = rectToObject(workspace.clientArea(KWin.MaximizeArea, window));
     const geometry = windowGeometry(window);
@@ -297,12 +337,14 @@ function restoreScriptMaximize(window) {
     }
 
     clearRestoreFor(window);
+    clearDelegatedTopTileFor(window);
     window.setMaximize(false, false);
     window.frameGeometry = rectForAssignment(geometry);
 }
 
 function forgetWindow(window) {
     clearRestoreFor(window);
+    clearDelegatedTopTileFor(window);
 
     for (let i = watchedWindows.length - 1; i >= 0; i--) {
         if (watchedWindows[i] === window) {
@@ -323,6 +365,7 @@ function smartMetaUp() {
 
     if (!area || !geometry) {
         workspace.slotWindowQuickTileTop();
+        rememberDelegatedTopTile(window);
         return;
     }
 
@@ -336,13 +379,18 @@ function smartMetaUp() {
 
     clearRestoreFor(window);
 
-    if (isTopTiled(window, area)) {
+    const topTiled = isTopTiled(window, area);
+    const rememberedDelegated = isRememberedDelegatedTopTile(window, geometry);
+
+    if (topTiled || rememberedDelegated) {
         saveRestoreGeometry(window, geometry);
+        clearDelegatedTopTileFor(window);
         window.setMaximize(true, true);
         return;
     }
 
     workspace.slotWindowQuickTileTop();
+    rememberDelegatedTopTile(window);
 }
 
 registerShortcut(
