@@ -156,6 +156,29 @@ function tileGeometry(window) {
     }
 }
 
+function commonTopQuickTileKind(rect, area) {
+    const topEdgeMatches = approxEqual(rect.y, area.y);
+    const halfHeight = approxTileHeightEqual(rect.height, area.height / 2, area);
+
+    if (!topEdgeMatches || !halfHeight) {
+        return null;
+    }
+
+    if (approxEqual(rect.x, area.x) && approxEqual(rect.width, area.width)) {
+        return "top";
+    }
+
+    if (approxEqual(rect.x, area.x) && approxEqual(rect.width, area.width / 2)) {
+        return "top-left";
+    }
+
+    if (approxEqual(right(rect), right(area)) && approxEqual(rect.width, area.width / 2)) {
+        return "top-right";
+    }
+
+    return null;
+}
+
 function isTopTileByKWinTileMetadata(window, area) {
     const tile = tileGeometry(window);
     if (!tile) {
@@ -166,28 +189,23 @@ function isTopTileByKWinTileMetadata(window, area) {
         return false;
     }
 
-    return isCommonTopQuickTileGeometry(tile, area);
+    return commonTopQuickTileKind(tile, area) !== null;
 }
 
 function isCommonTopQuickTileGeometry(rect, area) {
-    const topEdgeMatches = approxEqual(rect.y, area.y);
-    const halfHeight = approxTileHeightEqual(rect.height, area.height / 2, area);
+    return commonTopQuickTileKind(rect, area) !== null;
+}
 
-    const fullWidthTopHalf =
-        approxEqual(rect.x, area.x) &&
-        approxEqual(rect.width, area.width);
+function topQuickTileKind(window, geometry, area) {
+    const tile = tileGeometry(window);
+    if (tile && !isSameAsMaximizeArea(tile, area)) {
+        const tileKind = commonTopQuickTileKind(tile, area);
+        if (tileKind) {
+            return tileKind;
+        }
+    }
 
-    const topLeftQuarter =
-        approxEqual(rect.x, area.x) &&
-        approxEqual(rect.width, area.width / 2);
-
-    const topRightQuarter =
-        approxEqual(right(rect), right(area)) &&
-        approxEqual(rect.width, area.width / 2);
-
-    return topEdgeMatches &&
-        halfHeight &&
-        (fullWidthTopHalf || topLeftQuarter || topRightQuarter);
+    return commonTopQuickTileKind(geometry, area);
 }
 
 function isTopTiled(window, area) {
@@ -237,17 +255,17 @@ function restoreIndexFor(window) {
     return -1;
 }
 
-function hasRestoreFor(window) {
-    return restoreIndexFor(window) !== -1;
-}
-
-function restoreGeometryFor(window) {
+function restoreEntryFor(window) {
     const index = restoreIndexFor(window);
     if (index === -1) {
         return null;
     }
 
-    return restoreEntries[index].geometry;
+    return restoreEntries[index];
+}
+
+function hasRestoreFor(window) {
+    return restoreIndexFor(window) !== -1;
 }
 
 function clearRestoreFor(window) {
@@ -314,10 +332,11 @@ function watchWindow(window) {
     }
 }
 
-function saveRestoreGeometry(window, geometry) {
+function saveRestoreGeometry(window, geometry, tileKind) {
     const entry = {
         window: window,
-        geometry: cloneRect(geometry)
+        geometry: cloneRect(geometry),
+        tileKind: tileKind
     };
 
     const index = restoreIndexFor(window);
@@ -330,16 +349,40 @@ function saveRestoreGeometry(window, geometry) {
     watchWindow(window);
 }
 
+function applyQuickTileRestore(tileKind) {
+    if (tileKind === "top-left" && workspace.slotWindowQuickTileTopLeft) {
+        workspace.slotWindowQuickTileTopLeft();
+        return true;
+    }
+
+    if (tileKind === "top-right" && workspace.slotWindowQuickTileTopRight) {
+        workspace.slotWindowQuickTileTopRight();
+        return true;
+    }
+
+    if (tileKind === "top" && workspace.slotWindowQuickTileTop) {
+        workspace.slotWindowQuickTileTop();
+        return true;
+    }
+
+    return false;
+}
+
 function restoreScriptMaximize(window) {
-    const geometry = restoreGeometryFor(window);
-    if (!geometry) {
+    const entry = restoreEntryFor(window);
+    if (!entry || !entry.geometry) {
         return;
     }
 
     clearRestoreFor(window);
     clearDelegatedTopTileFor(window);
     window.setMaximize(false, false);
-    window.frameGeometry = rectForAssignment(geometry);
+
+    if (applyQuickTileRestore(entry.tileKind)) {
+        return;
+    }
+
+    window.frameGeometry = rectForAssignment(entry.geometry);
 }
 
 function forgetWindow(window) {
@@ -383,7 +426,7 @@ function smartMetaUp() {
     const rememberedDelegated = isRememberedDelegatedTopTile(window, geometry);
 
     if (topTiled || rememberedDelegated) {
-        saveRestoreGeometry(window, geometry);
+        saveRestoreGeometry(window, geometry, topQuickTileKind(window, geometry, area));
         clearDelegatedTopTileFor(window);
         window.setMaximize(true, true);
         return;
