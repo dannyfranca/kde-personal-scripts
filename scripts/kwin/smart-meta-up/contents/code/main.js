@@ -253,10 +253,6 @@ function topQuickTileKind(window, geometry, area) {
     return quickTileKind(window, geometry, area, commonTopQuickTileKind);
 }
 
-function bottomQuickTileKind(window, geometry, area) {
-    return quickTileKind(window, geometry, area, commonBottomQuickTileKind);
-}
-
 function isTopTiled(window, area) {
     if (isTopTileByKWinTileMetadata(window, area)) {
         return true;
@@ -506,11 +502,10 @@ function clearMinimizedRestoreFor(window) {
     }
 }
 
-function saveMinimizedRestore(window, geometry, tileKind) {
+function saveMinimizedRestore(window, geometry) {
     minimizedRestoreEntry = {
         window: window,
-        geometry: cloneRect(geometry),
-        tileKind: tileKind
+        geometry: cloneRect(geometry)
     };
 
     watchWindow(window);
@@ -548,11 +543,7 @@ function restoreScriptMinimizeIfAny() {
     window.minimized = false;
     activateWindow(window);
 
-    if (workspace.activeWindow === window && applyQuickTileRestore(entry.tileKind)) {
-        return true;
-    }
-
-    if (entry.geometry) {
+    if (entry.geometry && !isSameGeometry(windowGeometry(window), entry.geometry)) {
         window.frameGeometry = rectForAssignment(entry.geometry);
     }
 
@@ -649,7 +640,7 @@ function smartMetaDown() {
     const rememberedDelegated = isRememberedDelegatedTile(window, geometry, "bottom");
 
     if (bottomTiled || rememberedDelegated) {
-        saveMinimizedRestore(window, geometry, bottomQuickTileKind(window, geometry, area));
+        saveMinimizedRestore(window, geometry);
         minimizeWindow(window);
         return;
     }
