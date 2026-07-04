@@ -1,0 +1,25 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs/temp
+*.log
+*.tmp
+.cache/
+tmp/
+
+# Private local notes/backups
+local/
+backups/
+*.local
+
+# Language/tooling noise
+node_modules/
+__pycache__/
+.pytest_cache/
+
+# Review tool state
+.review/

@@ -1,0 +1,20 @@
+{
+  "KPlugin": {
+    "Authors": [
+      {
+        "Email": "me@dannyfranca.com",
+        "Name": "Danny Franca"
+      }
+    ],
+    "Description": "Meta+Up quick-tiles upward, maximizes common top tiles, and restores maximizes created by this script.",
+    "Icon": "preferences-system-windows",
+    "Id": "smart-meta-up",
+    "License": "GPL-3.0-or-later",
+    "Name": "Smart Meta Up",
+    "Version": "0.1.0",
+    "Website": "https://github.com/dannyfranca/kde-personal-scripts"
+  },
+  "X-Plasma-API": "javascript",
+  "X-Plasma-MainScript": "code/main.js",
+  "KPackageStructure": "KWin/Script"
+}
