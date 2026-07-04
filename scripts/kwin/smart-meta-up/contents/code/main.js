@@ -550,6 +550,14 @@ function restoreScriptMinimizeIfAny() {
     return true;
 }
 
+function restoreScriptMinimizeIfNoActiveWindow() {
+    if (workspace.activeWindow) {
+        return false;
+    }
+
+    return restoreScriptMinimizeIfAny();
+}
+
 function forgetWindow(window) {
     clearRestoreFor(window);
     clearDelegatedTileFor(window);
@@ -563,7 +571,7 @@ function forgetWindow(window) {
 }
 
 function smartMetaUp() {
-    if (restoreScriptMinimizeIfAny()) {
+    if (restoreScriptMinimizeIfNoActiveWindow()) {
         return;
     }
 
@@ -607,7 +615,7 @@ function smartMetaUp() {
 }
 
 function smartMetaDown() {
-    if (restoreScriptMinimizeIfAny()) {
+    if (restoreScriptMinimizeIfNoActiveWindow()) {
         return;
     }
 
