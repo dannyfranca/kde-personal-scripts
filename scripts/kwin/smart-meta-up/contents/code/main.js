@@ -323,6 +323,22 @@ function canRestoreKnownWindow(window) {
     return true;
 }
 
+function isUsableActiveWindow(window) {
+    if (!window) {
+        return false;
+    }
+
+    if (window.deleted || !window.managed) {
+        return false;
+    }
+
+    if (window.specialWindow || window.minimized) {
+        return false;
+    }
+
+    return true;
+}
+
 function restoreIndexFor(window) {
     for (let i = 0; i < restoreEntries.length; i++) {
         if (restoreEntries[i].window === window) {
@@ -550,8 +566,11 @@ function restoreScriptMinimizeIfAny() {
     return true;
 }
 
-function restoreScriptMinimizeIfNoActiveWindow() {
-    if (workspace.activeWindow) {
+function restoreScriptMinimizeIfNoOtherActiveWindow() {
+    const activeWindow = workspace.activeWindow;
+    const minimizedWindow = minimizedRestoreEntry ? minimizedRestoreEntry.window : null;
+
+    if (activeWindow !== minimizedWindow && isUsableActiveWindow(activeWindow)) {
         return false;
     }
 
@@ -571,7 +590,7 @@ function forgetWindow(window) {
 }
 
 function smartMetaUp() {
-    if (restoreScriptMinimizeIfNoActiveWindow()) {
+    if (restoreScriptMinimizeIfNoOtherActiveWindow()) {
         return;
     }
 
@@ -615,7 +634,7 @@ function smartMetaUp() {
 }
 
 function smartMetaDown() {
-    if (restoreScriptMinimizeIfNoActiveWindow()) {
+    if (restoreScriptMinimizeIfNoOtherActiveWindow()) {
         return;
     }
 

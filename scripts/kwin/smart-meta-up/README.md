@@ -16,7 +16,7 @@ This gives a Windows-like maximize step while preserving KDE's side-half to top-
 
 > When the active window is already in a common bottom tile, pressing `Meta+Down` again minimizes it.
 
-> When this script minimized a window and no other window is active, pressing either `Meta+Down` or `Meta+Up` restores the most recent script-minimized window to its previous bottom tile.
+> When this script minimized a window and no other normal window is active, pressing either `Meta+Down` or `Meta+Up` restores the most recent script-minimized window to its previous bottom tile.
 
 ## Shortcut
 
@@ -94,7 +94,7 @@ with `Smart Meta Down`.
 | Bottom-half tiled window | Once | Window minimizes |
 | Bottom-left tiled window | Once | Window minimizes |
 | Bottom-right tiled window | Once | Window minimizes |
-| Window minimized by this script and no other window is active | `Meta+Down` or `Meta+Up` | Window restores to its previous bottom tile |
-| Window minimized by this script and another window is active | `Meta+Down` or `Meta+Up` | Shortcut acts on the active window |
+| Window minimized by this script and no other normal window is active | `Meta+Down` or `Meta+Up` | Window restores to its previous bottom tile |
+| Window minimized by this script and another normal window is active | `Meta+Down` or `Meta+Up` | Shortcut acts on the active window |
 | Window minimized manually or by another shortcut | Once | No change |
 | Fullscreen window | Once | No change |
