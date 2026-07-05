@@ -505,11 +505,17 @@ function restoreScriptMaximize(window) {
     clearDelegatedTileFor(window);
     window.setMaximize(false, false);
 
+    if (!isSameGeometry(windowGeometry(window), entry.geometry)) {
+        window.frameGeometry = rectForAssignment(entry.geometry);
+    }
+
     if (applyQuickTileRestore(entry.tileKind)) {
         return;
     }
 
-    window.frameGeometry = rectForAssignment(entry.geometry);
+    if (!isSameGeometry(windowGeometry(window), entry.geometry)) {
+        window.frameGeometry = rectForAssignment(entry.geometry);
+    }
 }
 
 function clearMinimizedRestoreFor(window) {
