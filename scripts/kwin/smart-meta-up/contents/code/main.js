@@ -412,6 +412,14 @@ function clearRestoreAfterExternalUnmaximize(window) {
     }
 }
 
+function clearMinimizedRestoreAfterExternalUnminimize(window) {
+    if (minimizedRestoreEntry &&
+        minimizedRestoreEntry.window === window &&
+        !window.minimized) {
+        minimizedRestoreEntry = null;
+    }
+}
+
 function watchWindow(window) {
     for (let i = 0; i < watchedWindows.length; i++) {
         if (watchedWindows[i] === window) {
@@ -424,6 +432,12 @@ function watchWindow(window) {
     if (window.maximizedChanged && window.maximizedChanged.connect) {
         window.maximizedChanged.connect(function () {
             clearRestoreAfterExternalUnmaximize(window);
+        });
+    }
+
+    if (window.minimizedChanged && window.minimizedChanged.connect) {
+        window.minimizedChanged.connect(function () {
+            clearMinimizedRestoreAfterExternalUnminimize(window);
         });
     }
 }
